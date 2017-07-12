@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+  <title>Flame</title>
+  <style>
+  body {
+    margin: 0;
+  }
+  </style>
+</head>
+
+<body>
+  <canvas id="space">
+    Sorry, your browser does not support canvas.
+  </canvas>
+  <script>
+  const space = document.getElementById('space')
+  const surface = space.getContext('2d')
+
+  space.width = window.innerWidth
+  space.height = window.innerHeight
+
+  function clearSpace() {
+    surface.save()
+    surface.globalCompositeOperation = 'source-over'
+    surface.fillStyle = 'black'
+    surface.fillRect(0, 0, space.width, space.height)
+    surface.restore()
+  }
+
+  const PI = Math.PI
+  const round = Math.round
+  const random = Math.random
+
+  function particle() {
+    this.speed = {
+      x: -1 + random() * 2,
+      y: -5 + random() * 5
+    }
+    this.location = {
+      x: space.width / 2,
+      y: space.height / 2
+    }
+    this.radius = .5 + random()
+    this.death = 10 + random() * 10
+    this.life = this.death
+    this.rgb = `255, ${round(random() * 255)}, 0`
+  }
+
+  const particles = []
+  const PARTICLE_COUNT = 150
+
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    particles.push(new particle())
+  }
+
+  function render() {
+    clearSpace()
+    surface.globalCompositeOperation = 'lighter'
+    particles.forEach((p, i) => {
+      const gradient = surface.createRadialGradient(
+        p.location.x, p.location.y, 0, p.location.x, p.location.y, p.radius
+      )
+      p.opacity = random() * (p.death / p.life)
+
+      gradient.addColorStop(0, `rgba(${p.rgb},${p.opacity})`)
+      gradient.addColorStop(.5, `rgba(${p.rgb},${p.opacity})`)
+      gradient.addColorStop(1, `rgba(${p.rgb},0)`)
+      surface.fillStyle = gradient
+      surface.beginPath()
+      surface.arc(p.location.x, p.location.y, p.radius, 0, PI * 2)
+      surface.fill()
+
+      p.location.x += p.speed.x
+      p.location.y += p.speed.y
+      p.death--
+      p.radius++
+      if (p.radius <= 0 || p.opacity <= 0) {
+        particles[i] = new particle()
+      }
+    })
+    requestAnimationFrame(render)
+  }
+
+  render()
+  </script>
+</body>
+
+</html>
